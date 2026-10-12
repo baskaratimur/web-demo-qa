@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Makanan — QA Demo App</title>
+  <meta name="description" content="Manajemen data makanan & minuman — QA Demo App." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { min-height: 100vh; background: var(--bg-primary); }
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(22,27,39,0.9); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-default);
+      padding: 0 28px; height: 62px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 24px; }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .topbar-logo {
+      width: 34px; height: 34px; background: var(--accent-gradient);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      font-size: 17px; box-shadow: 0 4px 12px rgba(108,99,255,0.35); flex-shrink: 0;
+    }
+    .topbar-title {
+      font-size: 15px; font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .topbar-nav { display: flex; align-items: center; gap: 2px; }
+    .nav-link {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--border-radius-sm);
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      text-decoration: none; transition: var(--transition);
+    }
+    .nav-link:hover { color: var(--text-primary); background: var(--bg-input); }
+    .nav-link.active { color: var(--accent-secondary); background: rgba(108,99,255,0.12); }
+    .nav-link .nav-icon { font-size: 15px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-card); border: 1px solid var(--border-default);
+      border-radius: 999px; padding: 5px 14px 5px 7px;
+      font-size: 12px; font-weight: 500;
+    }
+    .user-avatar {
+      width: 24px; height: 24px; background: var(--accent-gradient);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;
+    }
+    .page-content { max-width: 1200px; margin: 0 auto; padding: 28px; }
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 22px; flex-wrap: wrap; gap: 12px;
+    }
+    .page-title-wrap h1 { font-size: 20px; font-weight: 700; }
+    .page-title-wrap p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+    @media (max-width: 640px) {
+      .topbar { padding: 0 16px; }
+      .topbar-nav .nav-link span:not(.nav-icon) { display: none; }
+      .page-content { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <a href="karyawan.html" class="topbar-brand">
+      <div class="topbar-logo">🧪</div>
+      <span class="topbar-title">QA Demo</span>
+    </a>
+    <nav class="topbar-nav">
+      <a href="karyawan.html" class="nav-link" id="nav-karyawan"><span class="nav-icon">👥</span><span>Karyawan</span></a>
+      <a href="makanan.html"  class="nav-link" id="nav-makanan"><span class="nav-icon">🍽️</span><span>Makanan</span></a>
+      <a href="pakaian.html"  class="nav-link" id="nav-pakaian"><span class="nav-icon">👗</span><span>Pakaian</span></a>
+    </nav>
+  </div>
+  <div class="topbar-right">
+    <div class="user-chip"><div class="user-avatar">👤</div><span>Admin</span></div>
+    <button id="logout-btn" class="btn btn-danger btn-sm">🚪 Logout</button>
+  </div>
+</header>
+
+<main class="page-content">
+  <div class="page-header">
+    <div class="page-title-wrap">
+      <h1>🍽️ Data Makanan</h1>
+      <p>Manajemen produk makanan &amp; minuman</p>
+    </div>
+    <button id="btn-tambah-makanan" class="btn btn-primary">➕ Tambah Makanan</button>
+  </div>
+
+  <div class="table-toolbar">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" data-testid="search-input" class="form-input search-input" placeholder="Cari nama makanan..." autocomplete="off" />
+      <button type="button" class="search-clear hidden" id="search-clear" title="Bersihkan pencarian">✕</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table id="makanan-table">
+      <thead>
+        <tr>
+          <th>Nama Makanan</th>
+          <th>Kategori</th>
+          <th>Harga</th>
+          <th>Stok</th>
+          <th>Kalori</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="makanan-tbody"></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- ===== MODAL MAKANAN ===== -->
+<div class="modal-overlay hidden" id="makanan-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="makanan-modal-title">Tambah Makanan</span>
+      <button class="modal-close" data-close-modal="makanan-modal">✕</button>
+    </div>
+    <form id="makanan-form" novalidate>
+      <input type="hidden" id="makanan-id" />
+
+      <div class="form-group">
+        <label class="form-label" for="m-nama">Nama Makanan *</label>
+        <input type="text" id="m-nama" class="form-input" placeholder="Contoh: Nasi Goreng Spesial" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Kategori *</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="m-kategori" value="Makanan Berat" id="m-kat-berat" /> 🍛 Makanan Berat</label>
+          <label class="radio-option"><input type="radio" name="m-kategori" value="Makanan Ringan" id="m-kat-ringan" /> 🍿 Makanan Ringan</label>
+          <label class="radio-option"><input type="radio" name="m-kategori" value="Minuman" id="m-kat-minuman" /> 🥤 Minuman</label>
+          <label class="radio-option"><input type="radio" name="m-kategori" value="Dessert" id="m-kat-dessert" /> 🍰 Dessert</label>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="form-group">
+          <label class="form-label" for="m-harga">Harga (Rp) *</label>
+          <input type="number" id="m-harga" class="form-input" placeholder="Contoh: 25000" min="0" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="m-stok">Stok (pcs) *</label>
+          <input type="number" id="m-stok" class="form-input" placeholder="Contoh: 50" min="0" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="m-kalori">Kalori (kkal)</label>
+        <input type="number" id="m-kalori" class="form-input" placeholder="Contoh: 350 (opsional)" min="0" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="m-deskripsi">Deskripsi</label>
+        <textarea id="m-deskripsi" class="form-textarea" placeholder="Deskripsi singkat makanan..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Ketersediaan *</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="m-tersedia" value="Tersedia" id="m-tersedia-ya" /> ✅ Tersedia</label>
+          <label class="radio-option"><input type="radio" name="m-tersedia" value="Habis" id="m-tersedia-habis" /> ❌ Habis</label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" data-close-modal="makanan-modal">Batal</button>
+        <button type="submit" class="btn btn-primary" id="makanan-submit-btn">💾 Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== CONFIRM ===== -->
+<div class="confirm-overlay hidden" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">⚠️</div>
+    <div class="confirm-title" id="confirm-title">Konfirmasi</div>
+    <div class="confirm-desc" id="confirm-desc">Apakah Anda yakin?</div>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" id="confirm-no">Batal</button>
+      <button class="btn btn-danger" id="confirm-yes">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!guardPage()) return;
+    setupTopbarNav();
+    setupConfirm();
+    setupLogout();
+    setupModalClose();
+    initMakanan();
+  });
+
+  // ===== DATA & FILTER =====
+  let makananList = [];
+
+  function filterAndDisplayMakanan() {
+    const tbody = document.getElementById('makanan-tbody');
+    const searchInput = document.getElementById('search-input');
+    const clearBtn = document.getElementById('search-clear');
+    const query = (searchInput?.value || '').trim().toLowerCase();
+
+    if (clearBtn) {
+      clearBtn.classList.toggle('hidden', query.length === 0);
+    }
+
+    if (!makananList.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+        <div class="empty-state-icon">🍽️</div>
+        <div class="empty-state-title">Belum ada data makanan</div>
+        <div class="empty-state-desc">Klik tombol Tambah untuk menambahkan data.</div>
+      </div></td></tr>`;
+      return;
+    }
+
+    // Filter strictly by nama only
+    const filtered = query
+      ? makananList.filter(m => (m.nama || '').toLowerCase().includes(query))
+      : makananList;
+
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <div class="empty-state-title">Data tidak ditemukan</div>
+        <div class="empty-state-desc">Tidak ada makanan dengan nama yang cocok dengan pencarian.</div>
+      </div></td></tr>`;
+      return;
+    }
+
+    const katBadge = { 'Makanan Berat':'badge-warning','Makanan Ringan':'badge-info','Minuman':'badge-success','Dessert':'badge-purple' };
+    tbody.innerHTML = filtered.map(m => `
+      <tr>
+        <td>${m.nama}</td>
+        <td><span class="badge ${katBadge[m.kategori]||'badge-info'}">${m.kategori}</span></td>
+        <td>Rp ${parseInt(m.harga).toLocaleString('id-ID')}</td>
+        <td>${m.stok} pcs</td>
+        <td>${m.kalori ? m.kalori + ' kkal' : '-'}</td>
+        <td><span class="badge ${m.tersedia==='Tersedia'?'badge-success':'badge-danger'}">● ${m.tersedia}</span></td>
+        <td><div class="table-actions">
+          <button class="btn-icon edit" onclick="editMakanan(${m.id})" id="makanan-edit-${m.id}" title="Edit">✏️</button>
+          <button class="btn-icon delete" onclick="deleteMakanan(${m.id})" id="makanan-delete-${m.id}" title="Hapus">🗑️</button>
+        </div></td>
+      </tr>`).join('');
+  }
+
+  async function renderMakanan() {
+    const tbody = document.getElementById('makanan-tbody');
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">⏳ Memuat data...</td></tr>`;
+    try {
+      const { data: list } = await Api.getAll('makanan');
+      makananList = list || [];
+      filterAndDisplayMakanan();
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+        <div class="empty-state-icon">⚠️</div>
+        <div class="empty-state-title">Gagal memuat data</div>
+        <div class="empty-state-desc">${err.message}</div>
+      </div></td></tr>`;
+    }
+  }
+
+  function initMakanan() {
+    document.getElementById('btn-tambah-makanan').addEventListener('click', () => {
+      document.getElementById('makanan-modal-title').textContent = 'Tambah Makanan';
+      document.getElementById('makanan-form').reset();
+      document.getElementById('makanan-id').value = '';
+      openModal('makanan-modal');
+    });
+
+    document.getElementById('makanan-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const id       = this.querySelector('#makanan-id').value;
+      const kategori = this.querySelector('input[name="m-kategori"]:checked')?.value;
+      const tersedia = this.querySelector('input[name="m-tersedia"]:checked')?.value;
+      if (!kategori) { showToast('Pilih kategori makanan.', 'warning'); return; }
+      if (!tersedia) { showToast('Pilih status ketersediaan.', 'warning'); return; }
+
+      const body = {
+        nama:      this.querySelector('#m-nama').value.trim(),
+        kategori, tersedia,
+        harga:     this.querySelector('#m-harga').value,
+        stok:      this.querySelector('#m-stok').value,
+        kalori:    this.querySelector('#m-kalori').value,
+        deskripsi: this.querySelector('#m-deskripsi').value.trim(),
+      };
+      try {
+        if (id) { await Api.update('makanan', id, body); showToast('Data berhasil diperbarui.', 'success'); }
+        else     { await Api.create('makanan', body);    showToast('Makanan berhasil ditambahkan.', 'success'); }
+        await renderMakanan();
+        closeModal('makanan-modal');
+      } catch (err) { showToast('Gagal menyimpan: ' + err.message, 'error'); }
+    });
+
+    // Search events
+    const searchInput = document.getElementById('search-input');
+    const clearBtn    = document.getElementById('search-clear');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        filterAndDisplayMakanan();
+      });
+    }
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        filterAndDisplayMakanan();
+        searchInput.focus();
+      });
+    }
+
+    renderMakanan();
+  }
+
+  async function editMakanan(id) {
+    try {
+      const { data: m } = await Api.getById('makanan', id);
+      document.getElementById('makanan-modal-title').textContent = 'Edit Makanan';
+      document.getElementById('makanan-id').value    = m.id;
+      document.getElementById('m-nama').value        = m.nama;
+      document.getElementById('m-harga').value       = m.harga;
+      document.getElementById('m-stok').value        = m.stok;
+      document.getElementById('m-kalori').value      = m.kalori;
+      document.getElementById('m-deskripsi').value   = m.deskripsi;
+      const katEl  = document.querySelector(`input[name="m-kategori"][value="${m.kategori}"]`);
+      if (katEl)  katEl.checked  = true;
+      const tersEl = document.querySelector(`input[name="m-tersedia"][value="${m.tersedia}"]`);
+      if (tersEl) tersEl.checked = true;
+      openModal('makanan-modal');
+    } catch (err) { showToast('Gagal memuat data: ' + err.message, 'error'); }
+  }
+
+  async function deleteMakanan(id) {
+    const ok = await showConfirm('Hapus Makanan', 'Data makanan ini akan dihapus permanen. Lanjutkan?');
+    if (!ok) return;
+    try {
+      await Api.delete('makanan', id);
+      showToast('Makanan berhasil dihapus.', 'error');
+      await renderMakanan();
+    } catch (err) { showToast('Gagal menghapus: ' + err.message, 'error'); }
+  }
+</script>
+</body>
+</html>

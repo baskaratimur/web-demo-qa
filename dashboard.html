@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — QA Demo App</title>
+  <meta name="description" content="Dashboard manajemen data karyawan, makanan, dan pakaian untuk demo QA." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      background: var(--bg-primary);
+    }
+
+    /* ===================== TOPBAR ===================== */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(22, 27, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-default);
+      padding: 0 28px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-logo {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-gradient);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(108, 99, 255, 0.35);
+    }
+
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: 999px;
+      padding: 6px 14px 6px 8px;
+      font-size: 13px;
+    }
+
+    .user-avatar {
+      width: 26px;
+      height: 26px;
+      background: var(--accent-gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    /* ===================== MAIN CONTENT ===================== */
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 28px;
+    }
+
+    /* Welcome banner */
+    .welcome-banner {
+      background: linear-gradient(135deg, rgba(108, 99, 255, 0.15), rgba(167, 139, 250, 0.08));
+      border: 1px solid rgba(108, 99, 255, 0.2);
+      border-radius: var(--border-radius-lg);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .welcome-text h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .welcome-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .welcome-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--accent-success);
+      font-weight: 600;
+    }
+
+    /* ===================== TABS ===================== */
+    .tabs-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: var(--border-radius-lg);
+      overflow: hidden;
+    }
+
+    .tabs-header {
+      display: flex;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-default);
+      padding: 0 4px;
+      gap: 2px;
+    }
+
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 22px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      position: relative;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-secondary);
+    }
+
+    .tab-btn.active {
+      color: var(--accent-secondary);
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-gradient);
+      border-radius: 2px 2px 0 0;
+    }
+
+    .tab-icon {
+      font-size: 16px;
+    }
+
+    /* Tab count badge */
+    .tab-count {
+      background: var(--bg-input);
+      border: 1px solid var(--border-default);
+      border-radius: 999px;
+      padding: 1px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+
+    .tab-btn.active .tab-count {
+      background: rgba(108, 99, 255, 0.15);
+      border-color: rgba(108, 99, 255, 0.3);
+      color: var(--accent-secondary);
+    }
+
+    /* ===================== TAB PANE ===================== */
+    .tab-pane {
+      display: none;
+      padding: 24px;
+    }
+
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .pane-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .pane-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .pane-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Search bar */
+    .pane-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-input-wrapper input {
+      padding-left: 36px;
+      width: 100%;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      pointer-events: none;
+      color: var(--text-muted);
+    }
+
+    /* ===================== COLOR PICKER ===================== */
+    input[type="color"] {
+      /* -webkit-appearance: none; */
+      width: 42px;
+      height: 42px;
+      border: 2px solid var(--border-default);
+      border-radius: var(--border-radius-sm);
+      background: none;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 4px;
+    }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 600px) {
+      .topbar {
+        padding: 0 16px;
+      }
+
+      .main-content {
+        padding: 16px;
+      }
+
+      .tab-btn {
+        padding: 12px 14px;
+        font-size: 12px;
+      }
+
+      .tab-pane {
+        padding: 16px;
+      }
+
+      .modal-box {
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="dashboard-page">
+
+    <!-- ===================== TOPBAR ===================== -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="topbar-logo">🧪</div>
+        <span class="topbar-title">QA Demo Portal</span>
+      </div>
+      <div class="topbar-right">
+        <div class="user-chip">
+          <div class="user-avatar">👤</div>
+          <span id="current-user">Admin</span>
+        </div>
+        <button id="logout-btn" class="btn btn-danger btn-sm" title="Logout">
+          🚪 Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================== MAIN ===================== -->
+    <main class="main-content">
+
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2>Halo, Admin! 👋</h2>
+          <p>Kelola data karyawan, makanan, dan pakaian melalui dashboard ini.</p>
+        </div>
+        <div class="welcome-badge">🟢 Session Aktif</div>
+      </div>
+
+      <!-- Tabs Container -->
+      <div class="tabs-container">
+        <div class="tabs-header">
+          <button class="tab-btn active" data-tab="karyawan" id="tab-karyawan">
+            <span class="tab-icon">👥</span> Karyawan
+            <span class="tab-count" id="count-karyawan">0</span>
+          </button>
+          <button class="tab-btn" data-tab="makanan" id="tab-makanan">
+            <span class="tab-icon">🍽️</span> Makanan
+            <span class="tab-count" id="count-makanan">0</span>
+          </button>
+          <button class="tab-btn" data-tab="pakaian" id="tab-pakaian">
+            <span class="tab-icon">👗</span> Pakaian
+            <span class="tab-count" id="count-pakaian">0</span>
+          </button>
+        </div>
+
+        <!-- =================== KARYAWAN =================== -->
+        <div class="tab-pane active" id="pane-karyawan">
+          <div class="pane-header">
+            <div>
+              <div class="pane-title">Data Karyawan</div>
+              <div class="pane-subtitle">Manajemen data pegawai perusahaan</div>
+            </div>
+            <button id="btn-tambah-karyawan" class="btn btn-primary">
+              ➕ Tambah Karyawan
+            </button>
+          </div>
+          <div class="table-container">
+            <table id="karyawan-table">
+              <thead>
+                <tr>
+                  <th>Nama Lengkap</th>
+                  <th>NIK</th>
+                  <th>Jabatan</th>
+                  <th>Departemen</th>
+                  <th>Tgl Bergabung</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="karyawan-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- =================== MAKANAN =================== -->
+        <div class="tab-pane" id="pane-makanan">
+          <div class="pane-header">
+            <div>
+              <div class="pane-title">Data Makanan</div>
+              <div class="pane-subtitle">Manajemen produk makanan & minuman</div>
+            </div>
+            <button id="btn-tambah-makanan" class="btn btn-primary">
+              ➕ Tambah Makanan
+            </button>
+          </div>
+          <div class="table-container">
+            <table id="makanan-table">
+              <thead>
+                <tr>
+                  <th>Nama Makanan</th>
+                  <th>Kategori</th>
+                  <th>Harga</th>
+                  <th>Stok</th>
+                  <th>Kalori</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="makanan-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- =================== PAKAIAN =================== -->
+        <div class="tab-pane" id="pane-pakaian">
+          <div class="pane-header">
+            <div>
+              <div class="pane-title">Data Pakaian</div>
+              <div class="pane-subtitle">Manajemen produk fashion & clothing</div>
+            </div>
+            <button id="btn-tambah-pakaian" class="btn btn-primary">
+              ➕ Tambah Pakaian
+            </button>
+          </div>
+          <div class="table-container">
+            <table id="pakaian-table">
+              <thead>
+                <tr>
+                  <th>Nama Produk</th>
+                  <th>Merek</th>
+                  <th>Gender</th>
+                  <th>Ukuran</th>
+                  <th>Warna</th>
+                  <th>Harga</th>
+                  <th>Stok</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="pakaian-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /tabs-container -->
+    </main>
+
+    <!-- ===================== MODAL: KARYAWAN ===================== -->
+    <div class="modal-overlay hidden" id="karyawan-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title" id="karyawan-modal-title">Tambah Karyawan</span>
+          <button class="modal-close" data-close-modal="karyawan-modal">✕</button>
+        </div>
+        <form id="karyawan-form" novalidate>
+          <input type="hidden" id="karyawan-id" />
+
+          <div class="form-group">
+            <label class="form-label" for="k-nama">Nama Lengkap *</label>
+            <input type="text" id="k-nama" class="form-input" placeholder="Contoh: Budi Santoso" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="k-nik">NIK *</label>
+            <input type="text" id="k-nik" class="form-input" placeholder="Contoh: EMP-001" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Jabatan *</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="jabatan" value="Staff" id="k-jabatan-staff" /> Staff
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="jabatan" value="Supervisor" id="k-jabatan-supervisor" /> Supervisor
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="jabatan" value="Manager" id="k-jabatan-manager" /> Manager
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="jabatan" value="Direktur" id="k-jabatan-direktur" /> Direktur
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="k-departemen">Departemen *</label>
+            <select id="k-departemen" class="form-select" required>
+              <option value="" disabled selected>Pilih departemen...</option>
+              <option value="IT & Engineering">IT &amp; Engineering</option>
+              <option value="Human Resources">Human Resources</option>
+              <option value="Finance & Accounting">Finance &amp; Accounting</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Operations">Operations</option>
+              <option value="Sales">Sales</option>
+              <option value="Legal & Compliance">Legal &amp; Compliance</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="k-bergabung">Tanggal Bergabung *</label>
+            <input type="date" id="k-bergabung" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Status Karyawan *</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="k-status" value="Aktif" id="k-status-aktif" /> 🟢 Aktif
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="k-status" value="Nonaktif" id="k-status-nonaktif" /> 🔴 Nonaktif
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal="karyawan-modal">Batal</button>
+            <button type="submit" class="btn btn-primary" id="karyawan-submit-btn">💾 Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================== MODAL: MAKANAN ===================== -->
+    <div class="modal-overlay hidden" id="makanan-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title" id="makanan-modal-title">Tambah Makanan</span>
+          <button class="modal-close" data-close-modal="makanan-modal">✕</button>
+        </div>
+        <form id="makanan-form" novalidate>
+          <input type="hidden" id="makanan-id" />
+
+          <div class="form-group">
+            <label class="form-label" for="m-nama">Nama Makanan *</label>
+            <input type="text" id="m-nama" class="form-input" placeholder="Contoh: Nasi Goreng Spesial" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Kategori *</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="m-kategori" value="Makanan Berat" id="m-kat-berat" /> 🍛 Makanan Berat
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="m-kategori" value="Makanan Ringan" id="m-kat-ringan" /> 🍿 Makanan Ringan
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="m-kategori" value="Minuman" id="m-kat-minuman" /> 🥤 Minuman
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="m-kategori" value="Dessert" id="m-kat-dessert" /> 🍰 Dessert
+              </label>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label class="form-label" for="m-harga">Harga (Rp) *</label>
+              <input type="number" id="m-harga" class="form-input" placeholder="Contoh: 25000" min="0" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="m-stok">Stok (pcs) *</label>
+              <input type="number" id="m-stok" class="form-input" placeholder="Contoh: 50" min="0" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="m-kalori">Kalori (kkal)</label>
+            <input type="number" id="m-kalori" class="form-input" placeholder="Contoh: 350 (opsional)" min="0" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="m-deskripsi">Deskripsi</label>
+            <textarea id="m-deskripsi" class="form-textarea" placeholder="Deskripsi singkat makanan..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ketersediaan *</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="m-tersedia" value="Tersedia" id="m-tersedia-ya" /> ✅ Tersedia
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="m-tersedia" value="Habis" id="m-tersedia-habis" /> ❌ Habis
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal="makanan-modal">Batal</button>
+            <button type="submit" class="btn btn-primary" id="makanan-submit-btn">💾 Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================== MODAL: PAKAIAN ===================== -->
+    <div class="modal-overlay hidden" id="pakaian-modal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title" id="pakaian-modal-title">Tambah Pakaian</span>
+          <button class="modal-close" data-close-modal="pakaian-modal">✕</button>
+        </div>
+        <form id="pakaian-form" novalidate>
+          <input type="hidden" id="pakaian-id" />
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label class="form-label" for="p-nama">Nama Produk *</label>
+              <input type="text" id="p-nama" class="form-input" placeholder="Contoh: Kaos Polos" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-merek">Merek *</label>
+              <input type="text" id="p-merek" class="form-input" placeholder="Contoh: BrandX" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Gender *</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="p-gender" value="Pria" id="p-gender-pria" /> 👔 Pria
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="p-gender" value="Wanita" id="p-gender-wanita" /> 👗 Wanita
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="p-gender" value="Unisex" id="p-gender-unisex" /> 🧥 Unisex
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ukuran Tersedia * (bisa pilih lebih dari satu)</label>
+            <div class="checkbox-group">
+              <label class="checkbox-option">
+                <input type="checkbox" name="p-ukuran" value="XS" id="p-ukuran-xs" /> XS
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" name="p-ukuran" value="S" id="p-ukuran-s" /> S
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" name="p-ukuran" value="M" id="p-ukuran-m" /> M
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" name="p-ukuran" value="L" id="p-ukuran-l" /> L
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" name="p-ukuran" value="XL" id="p-ukuran-xl" /> XL
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" name="p-ukuran" value="XXL" id="p-ukuran-xxl" /> XXL
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Warna</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="color" id="p-warna-hex" value="#6c63ff" title="Pilih warna" />
+              <input type="text" id="p-warna" class="form-input" placeholder="Nama warna, contoh: Biru Navy"
+                style="flex:1;" />
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label class="form-label" for="p-harga">Harga (Rp) *</label>
+              <input type="number" id="p-harga" class="form-input" placeholder="Contoh: 150000" min="0" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-stok">Stok (pcs) *</label>
+              <input type="number" id="p-stok" class="form-input" placeholder="Contoh: 30" min="0" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Kondisi *</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="p-kondisi" value="Baru" id="p-kondisi-baru" /> ✨ Baru
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="p-kondisi" value="Second" id="p-kondisi-second" /> ♻️ Second
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="p-kondisi" value="Cacat Produksi" id="p-kondisi-cacat" /> ⚠️ Cacat Produksi
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal="pakaian-modal">Batal</button>
+            <button type="submit" class="btn btn-primary" id="pakaian-submit-btn">💾 Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================== CONFIRM DIALOG ===================== -->
+    <div class="confirm-overlay hidden" id="confirm-overlay">
+      <div class="confirm-box">
+        <div class="confirm-icon">⚠️</div>
+        <div class="confirm-title" id="confirm-title">Konfirmasi</div>
+        <div class="confirm-desc" id="confirm-desc">Apakah Anda yakin?</div>
+        <div class="confirm-actions">
+          <button class="btn btn-secondary" id="confirm-no">Batal</button>
+          <button class="btn btn-danger" id="confirm-yes">Ya, Lanjutkan</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dashboard-page -->
+
+  <script src="app.js"></script>
+  <script>
+    // Update tab count badges
+    function updateCounts() {
+      try {
+        const k = JSON.parse(localStorage.getItem('qa_karyawan') || '[]');
+        const m = JSON.parse(localStorage.getItem('qa_makanan') || '[]');
+        const p = JSON.parse(localStorage.getItem('qa_pakaian') || '[]');
+        document.getElementById('count-karyawan').textContent = k.length;
+        document.getElementById('count-makanan').textContent = m.length;
+        document.getElementById('count-pakaian').textContent = p.length;
+      } catch { }
+    }
+
+    // Re-update counts whenever any form is submitted
+    document.addEventListener('DOMContentLoaded', function () {
+      updateCounts();
+      document.querySelectorAll('form').forEach(f => {
+        f.addEventListener('submit', () => setTimeout(updateCounts, 50));
+      });
+      // Also on delete (MutationObserver on tbodies)
+      ['karyawan-tbody', 'makanan-tbody', 'pakaian-tbody'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          new MutationObserver(updateCounts).observe(el, { childList: true, subtree: true });
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
